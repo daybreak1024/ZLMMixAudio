@@ -13,8 +13,6 @@
 #import <AudioUnit/AudioUnit.h>
 #import <AVFoundation/AVAudioFormat.h>
 
-const Float64 kGraphSampleRate = 44100.0; // 48000.0 optional tests
-
 @interface MultichannelMixerController (){
     AUGraph _mGraph;
     AudioUnit _mMixer;
@@ -37,8 +35,10 @@ const Float64 kGraphSampleRate = 44100.0; // 48000.0 optional tests
 
 }
 - (void)loadFiles{
-    
-#warning zlm  从本地读取类中获取数据
+    NSString *sourceA = [[NSBundle mainBundle] pathForResource:@"GuitarMonoSTP" ofType:@"aif"];
+    NSString *sourceB = [[NSBundle mainBundle] pathForResource:@"Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free" ofType:@"mp3"];
+    SoundBuffer SoundBufferA = [ReadSourceTool getAudioFormLoacl:sourceA];
+    SoundBuffer SoundBufferB = [ReadSourceTool getAudioFormLoacl:sourceB];
 }
 
 - (void)initializeAUGraph{
@@ -147,34 +147,34 @@ const Float64 kGraphSampleRate = 44100.0; // 48000.0 optional tests
 static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData){
     MultichannelMixerController *source = (__bridge MultichannelMixerController *)inRefCon;
     
-    SoundBuffer * sndbuf = source->mSoundBuffer;
-    
-    UInt32 sample = sndbuf[inBusNumber].sampleNum;      // frame number to start from
-    UInt32 bufSamples = sndbuf[inBusNumber].numFrames;  // total number of frames in the sound buffer
-    Float32 *data = sndbuf[inBusNumber].data; // audio data buffer
-    
-    Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
-    Float32 *outB = (Float32 *)ioData->mBuffers[1].mData; // output audio buffer for R channel
-    
-    for (UInt32 i = 0; i < inNumberFrames; ++i) {
-        
-        if (1 == inBusNumber) {
-            outA[i] = data[sample++];
-            outB[i] = data[sample++];
-        } else {
-            outA[i] = data[sample++];
-            outB[i] = data[sample++];;
-        }
-        
-        if (sample > bufSamples) {
-            // start over from the beginning of the data, our audio simply loops
-            printf("looping data for bus %d after %ld source frames rendered\n", (unsigned int)inBusNumber, (long)sample-1);
-            sample = 0;
-        }
-    }
-    
-    sndbuf[inBusNumber].sampleNum = sample; // keep track of where we are in the source data buffer
-    //    }
+//    SoundBuffer * sndbuf = source->mSoundBuffer;
+//    
+//    UInt32 sample = sndbuf[inBusNumber].sampleNum;      // frame number to start from
+//    UInt32 bufSamples = sndbuf[inBusNumber].numFrames;  // total number of frames in the sound buffer
+//    Float32 *data = sndbuf[inBusNumber].data; // audio data buffer
+//    
+//    Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
+//    Float32 *outB = (Float32 *)ioData->mBuffers[1].mData; // output audio buffer for R channel
+//    
+//    for (UInt32 i = 0; i < inNumberFrames; ++i) {
+//        
+//        if (1 == inBusNumber) {
+//            outA[i] = data[sample++];
+//            outB[i] = data[sample++];
+//        } else {
+//            outA[i] = data[sample++];
+//            outB[i] = data[sample++];;
+//        }
+//        
+//        if (sample > bufSamples) {
+//            // start over from the beginning of the data, our audio simply loops
+//            printf("looping data for bus %d after %ld source frames rendered\n", (unsigned int)inBusNumber, (long)sample-1);
+//            sample = 0;
+//        }
+//    }
+//    
+//    sndbuf[inBusNumber].sampleNum = sample; // keep track of where we are in the source data buffer
+//    //    }
     
     
     //printf("bus %d sample %d\n", (unsigned int)inBusNumber, (unsigned int)sample);

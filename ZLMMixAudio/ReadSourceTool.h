@@ -8,12 +8,20 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreAudioKit/CoreAudioKit.h>
-NS_ASSUME_NONNULL_BEGIN
+typedef struct {
+    AudioStreamBasicDescription asbd;
+    UInt32                      channelCount;
+    Float32                     *leftData;
+    Float32                     *rightData;
+    UInt32                      numFrames;
+    UInt32                      sampleNum;
+} SoundBuffer;
+
 extern const Float64 kGraphSampleRate;
-@interface ReadSourceTool : NSObject{
-    AudioBuffer sourceBuffer;
-}
-- (instancetype)initWithAudioFormat:(AVAudioFormat *)audioFormat;
+
+NS_ASSUME_NONNULL_BEGIN
+@interface ReadSourceTool : NSObject
++ (SoundBuffer)getAudioFormLoacl:(NSString *)path;
 @end
 
 NS_ASSUME_NONNULL_END
