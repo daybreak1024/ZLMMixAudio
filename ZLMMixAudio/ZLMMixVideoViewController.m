@@ -7,9 +7,9 @@
 //
 
 #import "ZLMMixVideoViewController.h"
-
+#import "MultichannelMixerController.h"
 @interface ZLMMixVideoViewController ()
-
+@property (nonatomic, strong) MultichannelMixerController *mixerController;
 @end
 
 @implementation ZLMMixVideoViewController
@@ -17,6 +17,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    _mixerController = [[MultichannelMixerController alloc] init];
+
 }
 
 /*
@@ -28,5 +30,30 @@
     // Pass the selected object to the new view controller.
 }
 */
-
+- (IBAction)palyClick:(UIButton *)sender {
+    sender.selected = !sender.selected;
+    if (sender.selected) {
+        [self.mixerController startAUGraph];
+    }else{
+        [self.mixerController stopAUGraph];
+    }
+}
+// handle input on/off switch action
+- (IBAction)enableInput:(UISwitch *)sender
+{
+    UInt32 inputNum = (UInt32)[sender tag];
+    AudioUnitParameterValue isOn = (AudioUnitParameterValue)sender.isOn;
+    
+//    if (0 == inputNum) self.bus0VolumeSlider.enabled = isOn;
+//    if (1 == inputNum) self.bus1VolumeSlider.enabled = isOn;
+    
+    [self.mixerController enableInput:inputNum isOn:isOn];
+}
+- (IBAction)setInputVolume:(UISlider *)sender
+{
+    UInt32 inputNum = (UInt32)[sender tag];
+    AudioUnitParameterValue value = sender.value;
+    
+    [self.mixerController setInputVolume:inputNum value:value];
+}
 @end

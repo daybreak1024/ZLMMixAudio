@@ -17,6 +17,8 @@
     AUGraph _mGraph;
     AudioUnit _mMixer;
     AudioUnit _mOutput;
+    SoundBuffer _soundBufferA;
+    SoundBuffer _soundBufferB;
 }
 @property (nonatomic, assign) BOOL isPlaying;
 @property (nonatomic, strong) AVAudioFormat *mAudioFormat;
@@ -26,7 +28,7 @@
     if (self = [super init]) {
         _isPlaying = false;
         
-        
+        [self initializeAUGraph];
     }
     return self;
 }
@@ -34,11 +36,63 @@
     DisposeAUGraph(_mGraph);
 
 }
+#pragma mark - Public
+// stars render
+- (void)startAUGraph{
+    
+    OSStatus result = AUGraphStart(_mGraph);
+    NSAssert(result == noErr, @"AUGraphStart result Error");
+
+    self.isPlaying = true;
+}
+
+// stops render
+- (void)stopAUGraph{
+    printf("STOP\n");
+    
+    Boolean isRunning = false;
+    
+    OSStatus result = AUGraphIsRunning(_mGraph, &isRunning);
+    NSAssert(result == noErr, @"AUGraphIsRunning result Error");
+
+    if (isRunning) {
+        result = AUGraphStop(_mGraph);
+        NSAssert(result == noErr, @"AUGraphStop result Error");
+
+        self.isPlaying = false;
+    }
+}
+- (void)enableInput:(UInt32)inputNum isOn:(AudioUnitParameterValue)isONValue
+{
+    printf("BUS %d isON %f\n", (unsigned int)inputNum, isONValue);
+    
+    OSStatus result = AudioUnitSetParameter(_mMixer, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, inputNum, isONValue, 0);
+    if (result) { printf("AudioUnitSetParameter kMultiChannelMixerParam_Enable result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+    
+}
+
+// sets the input volume for a specific bus
+- (void)setInputVolume:(UInt32)inputNum value:(AudioUnitParameterValue)value
+{
+    OSStatus result = AudioUnitSetParameter(_mMixer, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, inputNum, value, 0);
+    if (result) { printf("AudioUnitSetParameter kMultiChannelMixerParam_Volume Input result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+}
+
+// sets the overall mixer output volume
+- (void)setOutputVolume:(AudioUnitParameterValue)value
+{
+    OSStatus result = AudioUnitSetParameter(_mMixer, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, value, 0);
+    if (result) { printf("AudioUnitSetParameter kMultiChannelMixerParam_Volume Output result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+}
+#pragma mark - Private
 - (void)loadFiles{
     NSString *sourceA = [[NSBundle mainBundle] pathForResource:@"GuitarMonoSTP" ofType:@"aif"];
     NSString *sourceB = [[NSBundle mainBundle] pathForResource:@"Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free" ofType:@"mp3"];
-    SoundBuffer SoundBufferA = [ReadSourceTool getAudioFormLoacl:sourceA];
-    SoundBuffer SoundBufferB = [ReadSourceTool getAudioFormLoacl:sourceB];
+//    NSString *sourceB = [[NSBundle mainBundle] pathForResource:@"DrumsMonoSTP" ofType:@"aif"];
+
+    
+    _soundBufferA = [ReadSourceTool getAudioFormLoacl:sourceA];
+    _soundBufferB = [ReadSourceTool getAudioFormLoacl:sourceB];
 }
 
 - (void)initializeAUGraph{
@@ -66,11 +120,11 @@
     
     // multichannel mixer unit
     AudioComponentDescription mixer_desc ;
-    output_desc.componentType          = kAudioUnitType_Mixer;
-    output_desc.componentSubType       = kAudioUnitSubType_MultiChannelMixer;
-    output_desc.componentManufacturer  = kAudioUnitManufacturer_Apple;
-    output_desc.componentFlags         = 0;
-    output_desc.componentFlagsMask     = 0;
+    mixer_desc.componentType          = kAudioUnitType_Mixer;
+    mixer_desc.componentSubType       = kAudioUnitSubType_MultiChannelMixer;
+    mixer_desc.componentManufacturer  = kAudioUnitManufacturer_Apple;
+    mixer_desc.componentFlags         = 0;
+    mixer_desc.componentFlagsMask     = 0;
     
     // 根据 AudioComponentDescriptions 创建 AUNode
     result = AUGraphAddNode(_mGraph, &output_desc, &outputNode);
@@ -148,36 +202,48 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
     MultichannelMixerController *source = (__bridge MultichannelMixerController *)inRefCon;
     
 //    SoundBuffer * sndbuf = source->mSoundBuffer;
-//    
-//    UInt32 sample = sndbuf[inBusNumber].sampleNum;      // frame number to start from
-//    UInt32 bufSamples = sndbuf[inBusNumber].numFrames;  // total number of frames in the sound buffer
-//    Float32 *data = sndbuf[inBusNumber].data; // audio data buffer
-//    
-//    Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
-//    Float32 *outB = (Float32 *)ioData->mBuffers[1].mData; // output audio buffer for R channel
-//    
-//    for (UInt32 i = 0; i < inNumberFrames; ++i) {
-//        
-//        if (1 == inBusNumber) {
-//            outA[i] = data[sample++];
-//            outB[i] = data[sample++];
-//        } else {
-//            outA[i] = data[sample++];
-//            outB[i] = data[sample++];;
-//        }
-//        
-//        if (sample > bufSamples) {
-//            // start over from the beginning of the data, our audio simply loops
-//            printf("looping data for bus %d after %ld source frames rendered\n", (unsigned int)inBusNumber, (long)sample-1);
-//            sample = 0;
-//        }
-//    }
-//    
-//    sndbuf[inBusNumber].sampleNum = sample; // keep track of where we are in the source data buffer
-//    //    }
+//
+    SoundBuffer *sndbuf = inBusNumber == 1 ? &(source->_soundBufferB): &(source->_soundBufferA);
+
+    UInt32 sample = sndbuf->sampleNum;      // frame number to start from
+    UInt32 bufSamples = sndbuf->numFrames;  // total number of frames in the sound buffer
+    Float32 *leftData = sndbuf->leftData; // audio data buffer
+    Float32 *rightData = sndbuf->rightData; // audio data buffer
+
+    Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
+    Float32 *outB = (Float32 *)ioData->mBuffers[1].mData; // output audio buffer for R channel
     
+    for (UInt32 i = 0; i < inNumberFrames; ++i) {
+        if (sndbuf->channelCount == 2) {
+            outA[i] = leftData[sample++];
+            outB[i] = rightData[sample++];
+//            outB[i] = leftData[sample++];
+
+        }else{
+            /*左右混合声道*/
+            outA[i] = leftData[sample++];
+            outB[i] = leftData[sample++];
+            /*左右单声道*/
+//            if (1 == inBusNumber) {
+//                outA[i] = leftData[sample++];
+//                outB[i] = 0;
+//            } else {
+//                outA[i] = 0;
+//                outB[i] = leftData[sample++];;
+//            }
+        }
+        
+        
+        if (sample > bufSamples) {
+            // start over from the beginning of the data, our audio simply loops
+            printf("looping data for bus %d after %ld source frames rendered\n", (unsigned int)inBusNumber, (long)sample-1);
+            sample = 0;
+        }
+    }
     
-    //printf("bus %d sample %d\n", (unsigned int)inBusNumber, (unsigned int)sample);
+    sndbuf->sampleNum = sample; // keep track of where we are in the source data buffer
+    
+    printf("bus %d sample %d\n", (unsigned int)inBusNumber, (unsigned int)sample);
     
     return noErr;
     

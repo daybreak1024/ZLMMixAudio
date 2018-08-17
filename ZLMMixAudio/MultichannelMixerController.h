@@ -7,11 +7,19 @@
 //
 
 #import <Foundation/Foundation.h>
-
+#import <AudioUnit/AudioUnit.h>
+#import <AVFoundation/AVAudioFormat.h>
 NS_ASSUME_NONNULL_BEGIN
 
 @interface MultichannelMixerController : NSObject
 @property (nonatomic, assign, readonly) BOOL isPlaying;
+- (void)startAUGraph;
+- (void)stopAUGraph;
+
+- (void)enableInput:(UInt32)inputNum isOn:(AudioUnitParameterValue)isONValue;
+- (void)setInputVolume:(UInt32)inputNum value:(AudioUnitParameterValue)value;
+- (void)setOutputVolume:(AudioUnitParameterValue)value;
+
 @end
 
 NS_ASSUME_NONNULL_END
