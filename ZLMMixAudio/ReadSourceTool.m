@@ -25,26 +25,27 @@ const Float64 kGraphSampleRate = 44100.0; // 48000.0 optional tests
     
     /* 读取文件的实际 formt*/
     AudioStreamBasicDescription fileFormat;
-    UInt32 propSize = sizeof(AudioStreamBasicDescription);;
+    UInt32 propSize = sizeof(fileFormat);;
     result = ExtAudioFileGetProperty(fp, kExtAudioFileProperty_FileDataFormat, &propSize, &fileFormat);
     NSAssert(result == noErr, @"ExtAudioFileGetProperty result Error");
     
-    UInt32 channel = fileFormat.mChannelsPerFrame; // 声道数
-
+//    UInt32 channel = fileFormat.mChannelsPerFrame; // 声道数
+    UInt32 channel = 1;
+    if (fileFormat.mChannelsPerFrame == 2) {
+        channel = 2;
+    }
+    // 计算出原始和转化后的 sample frames 比例
+    double rateRatio = kGraphSampleRate / fileFormat.mSampleRate;
     
     
     /*设置读取 formt*/
     // 读取时的格式
-    AVAudioFormat *clientFormat = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32 sampleRate:kGraphSampleRate channels:channel interleaved:YES];
+    AVAudioFormat *clientFormat = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32 sampleRate:kGraphSampleRate channels:channel interleaved:NO];
     propSize = sizeof(AudioStreamBasicDescription);
     // 设置从文件中读出的音频格式
     result = ExtAudioFileSetProperty(fp, kExtAudioFileProperty_ClientDataFormat,propSize, clientFormat.streamDescription);
     NSAssert(result == noErr, @"ExtAudioFileSetProperty result Error");
     
-    
-    
-    // 计算出原始和转化后的 sample frames 比例
-    double rateRatio = kGraphSampleRate / fileFormat.mSampleRate;
     
     /* 获取文件的 frames length (设置读取格式后读取才能读取准确)*/
     UInt64 numFrames = 0; // 帧数
@@ -70,28 +71,29 @@ const Float64 kGraphSampleRate = 44100.0; // 48000.0 optional tests
     soundBuffer.sampleNum = 0;
 
     //如果是立体声，还要多为AudioBuffer申请一个空间存放右声道数据
-    AudioBufferList bufList; //= (AudioBufferList *)malloc(sizeof(AudioBufferList) + sizeof(AudioBuffer)*(channel-1));
-    bufList.mNumberBuffers = 1;
-    
+    AudioBufferList *bufList = (AudioBufferList *)malloc(sizeof(AudioBufferList) + sizeof(AudioBuffer)*(channel-1));
     AudioBuffer emptyBuffer = {0};
-    bufList.mBuffers[0] = emptyBuffer;
-    bufList.mBuffers[0].mNumberChannels = 1;
-    bufList.mBuffers[0].mData = soundBuffer.leftData;
-    bufList.mBuffers[0].mDataByteSize = (UInt32)samples*sizeof(Float32);
+    bufList->mNumberBuffers = channel;
+    
+    for (int arrayIndex = 0; arrayIndex < channel; arrayIndex++) {
+        bufList->mBuffers[arrayIndex] = emptyBuffer;
+    }
+    bufList->mBuffers[0].mNumberChannels = 1;
+    bufList->mBuffers[0].mData = soundBuffer.leftData;
+    bufList->mBuffers[0].mDataByteSize = (UInt32)numFrames*sizeof(Float32);
     
     if (2 == channel) {
-        bufList.mBuffers[1] = emptyBuffer;
-        bufList.mBuffers[1].mNumberChannels = 1;
-        bufList.mBuffers[1].mDataByteSize = (UInt32)samples*sizeof(Float32);
-        bufList.mBuffers[1].mData = soundBuffer.rightData;
+        bufList->mBuffers[1].mNumberChannels = 1;
+        bufList->mBuffers[1].mDataByteSize = (UInt32)numFrames*sizeof(Float32);
+        bufList->mBuffers[1].mData = soundBuffer.rightData;
     }
-
     
-    // 读取数据
     UInt32 numberOfPacketsToRead = (UInt32) numFrames;
-    result = ExtAudioFileRead(fp, &numberOfPacketsToRead,&bufList);
+    // 读取数据
+    ExtAudioFileRead(fp, &numberOfPacketsToRead, bufList);
     NSAssert(result == noErr, @"ExtAudioFileRead result Error");
 
+    free(bufList);
     ExtAudioFileDispose(fp);
  
     return soundBuffer;

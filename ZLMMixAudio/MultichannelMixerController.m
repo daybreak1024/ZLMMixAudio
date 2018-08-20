@@ -12,7 +12,7 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <AudioUnit/AudioUnit.h>
 #import <AVFoundation/AVAudioFormat.h>
-
+#define kNumbuses 2 // 目前只有 _soundBufferA 和 _soundBufferB 两个
 @interface MultichannelMixerController (){
     AUGraph _mGraph;
     AudioUnit _mMixer;
@@ -158,18 +158,21 @@
 }
 - (void)audioUnitSetProperty{
     OSStatus result = noErr;
-
-    // 为 AUGraph 生成统一的 ASBD（AudioStreamBasicDescription）
-    AVAudioFormat *mAudioFormat = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
-                                                                   sampleRate:kGraphSampleRate
-                                                                     channels:2
-                                                                  interleaved:NO];
-    // set bus count
-    UInt32 numbuses = 2;
+   
+    // set bus count 有几个设置几个，当前只有两个。
+    UInt32 numbuses = kNumbuses;
     // 设置混音输入的源的 Element（ bus） 数量
     result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &numbuses, sizeof(numbuses));
     NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
 
+    // Increase the maximum frames per slice allows the mixer unit to accommodate the
+    //    larger slice size used when the screen is locked.
+    UInt32 maximumFramesPerSlice = 4096;
+    result = AudioUnitSetProperty (_mMixer,kAudioUnitProperty_MaximumFramesPerSlice,kAudioUnitScope_Global,0,&maximumFramesPerSlice,sizeof (maximumFramesPerSlice));
+    NSAssert(result == noErr, @"kAudioUnitProperty_MaximumFramesPerSlice result Error");
+
+    
+    
     // 设置 混音输入数据的回调 和 输入源的 Fromat
     for (int i = 0; i < numbuses; ++i) {
         // 创建 render callback
@@ -182,6 +185,24 @@
         result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, i, &rcbs, sizeof(rcbs));
         NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
         
+        // 为 AUGraph 生成统一的 ASBD（AudioStreamBasicDescription）
+        AVAudioFormat *mAudioFormat = nil;
+        if (i == 0) {
+            AVAudioFormat *mAudioFormatA = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
+                                                                            sampleRate:kGraphSampleRate
+                                                                              channels:1
+                                                                           interleaved:NO];
+            mAudioFormat = mAudioFormatA;
+        }else{
+            AVAudioFormat *mAudioFormatB = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
+                                                                            sampleRate:kGraphSampleRate
+                                                                              channels:2
+                                                                           interleaved:NO];
+            mAudioFormat = mAudioFormatB;
+        }
+        
+        
+        
         // 设置输入源的Fromat
         result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, i, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
         NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
@@ -189,11 +210,17 @@
     }
     
     // 设置输出的 Fromat
-    result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
-    NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
+    double sample = kGraphSampleRate;
+    
+    result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_SampleRate,
+                         kAudioUnitScope_Output, 0,&sample , sizeof(sample));
+    NSAssert(result == noErr, @"kAudioUnitProperty_SampleRate result Error");
 
-    result = AudioUnitSetProperty(_mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1,  mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
-    NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
+//    result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
+//    NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
+
+//    result = AudioUnitSetProperty(_mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1,  mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
+//    NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
     
 }
 
@@ -214,25 +241,12 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
     Float32 *outB = (Float32 *)ioData->mBuffers[1].mData; // output audio buffer for R channel
     
     for (UInt32 i = 0; i < inNumberFrames; ++i) {
-        if (sndbuf->channelCount == 2) {
-            outA[i] = leftData[sample++];
-            outB[i] = rightData[sample++];
-//            outB[i] = leftData[sample++];
+        outA[i] = leftData[sample];
 
-        }else{
-            /*左右混合声道*/
-            outA[i] = leftData[sample++];
-            outB[i] = leftData[sample++];
-            /*左右单声道*/
-//            if (1 == inBusNumber) {
-//                outA[i] = leftData[sample++];
-//                outB[i] = 0;
-//            } else {
-//                outA[i] = 0;
-//                outB[i] = leftData[sample++];;
-//            }
+        if (sndbuf->channelCount == 2) {
+            outB[i] = rightData[sample];
         }
-        
+        sample++;
         
         if (sample > bufSamples) {
             // start over from the beginning of the data, our audio simply loops
