@@ -65,7 +65,18 @@
                             <outlet property="delegate" destination="cpz-Wo-usG" id="XNV-yn-E6M"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" id="eWT-df-wlT"/>
+                    <navigationItem key="navigationItem" id="eWT-df-wlT">
+                        <barButtonItem key="leftBarButtonItem" title="Item" id="D4q-oc-gla">
+                            <connections>
+                                <action selector="start:" destination="cpz-Wo-usG" id="WvH-aa-zsL"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" title="Item" id="yia-Qv-M7g">
+                            <connections>
+                                <action selector="stop:" destination="cpz-Wo-usG" id="zjp-e0-fLH"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9UB-aU-hIb" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

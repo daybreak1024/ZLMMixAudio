@@ -12,6 +12,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface MultichannelMixerController : NSObject
+- (instancetype)initWithLoaclFilesPath:(NSArray <NSString *>* _Nullable )files;
+
 @property (nonatomic, assign, readonly) BOOL isPlaying;
 - (void)startAUGraph;
 - (void)stopAUGraph;

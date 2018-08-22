@@ -12,96 +12,143 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <AudioUnit/AudioUnit.h>
 #import <AVFoundation/AVAudioFormat.h>
-#define kNumbuses 2 // 目前只有 _soundBufferA 和 _soundBufferB 两个
+
+#define kRemoteIOInputBus 1
+#define kRemoteIOOutputBus 1
+
 @interface MultichannelMixerController (){
     AUGraph _mGraph;
     AudioUnit _mMixer;
     AudioUnit _mOutput;
-    SoundBuffer _soundBufferA;
-    SoundBuffer _soundBufferB;
+    SoundBuffer *  _soundBufferList;
+    
+    AudioBufferList *_buffers;
+
 }
 @property (nonatomic, assign) BOOL isPlaying;
 @property (nonatomic, strong) AVAudioFormat *mAudioFormat;
+@property (nonatomic, strong) NSArray *files;
+@property (nonatomic, strong) dispatch_queue_t taskQueue;
+
 @end
 @implementation MultichannelMixerController
-- (instancetype)init{
+- (instancetype)initWithLoaclFilesPath:(NSArray<NSString *> *)files{
     if (self = [super init]) {
         _isPlaying = false;
+        _files = files;
+        self.taskQueue = dispatch_queue_create("com.netease.NASA.audioCapture.Queue", NULL);
+        dispatch_sync(self.taskQueue, ^{
+            // 加载本地音频
+            [self loadFiles];
+            
+            [self initializeAUGraph];
+        });
         
-        [self initializeAUGraph];
+        
     }
     return self;
 }
 - (void)dealloc{
-    DisposeAUGraph(_mGraph);
-
+    dispatch_sync(self.taskQueue, ^{
+        DisposeAUGraph(self->_mGraph);
+        
+        if (self->_soundBufferList != NULL) {
+            free(self->_soundBufferList);
+        }
+        
+        if (self->_buffers != NULL) {
+            if (self->_buffers->mBuffers[0].mData) {
+                free(self->_buffers->mBuffers[0].mData);
+                self->_buffers->mBuffers[0].mData = NULL;
+            }
+            free(self->_buffers);
+            self->_buffers = NULL;
+        }
+        
+    });
 }
 #pragma mark - Public
 // stars render
 - (void)startAUGraph{
-    
-    OSStatus result = AUGraphStart(_mGraph);
-    NSAssert(result == noErr, @"AUGraphStart result Error");
-
-    self.isPlaying = true;
+    dispatch_sync(self.taskQueue, ^{
+        
+        OSStatus result = AUGraphStart(self->_mGraph);
+        NSAssert(result == noErr, @"AUGraphStart result Error");
+        
+        self.isPlaying = true;
+    });
 }
 
 // stops render
 - (void)stopAUGraph{
     printf("STOP\n");
-    
-    Boolean isRunning = false;
-    
-    OSStatus result = AUGraphIsRunning(_mGraph, &isRunning);
-    NSAssert(result == noErr, @"AUGraphIsRunning result Error");
-
-    if (isRunning) {
-        result = AUGraphStop(_mGraph);
-        NSAssert(result == noErr, @"AUGraphStop result Error");
-
-        self.isPlaying = false;
-    }
+    dispatch_sync(self.taskQueue, ^{
+        
+        Boolean isRunning = false;
+        OSStatus result = AUGraphIsRunning(self->_mGraph, &isRunning);
+        NSAssert(result == noErr, @"AUGraphIsRunning result Error");
+        
+        if (isRunning) {
+            result = AUGraphStop(self->_mGraph);
+            NSAssert(result == noErr, @"AUGraphStop result Error");
+            
+            self.isPlaying = false;
+        }
+        
+    });
 }
 - (void)enableInput:(UInt32)inputNum isOn:(AudioUnitParameterValue)isONValue
 {
-    printf("BUS %d isON %f\n", (unsigned int)inputNum, isONValue);
-    
-    OSStatus result = AudioUnitSetParameter(_mMixer, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, inputNum, isONValue, 0);
-    if (result) { printf("AudioUnitSetParameter kMultiChannelMixerParam_Enable result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+    dispatch_sync(self.taskQueue, ^{
+        
+        printf("BUS %d isON %f\n", (unsigned int)inputNum, isONValue);
+        
+        OSStatus result = AudioUnitSetParameter(self->_mMixer, kMultiChannelMixerParam_Enable, kAudioUnitScope_Input, inputNum, isONValue, 0);
+        if (result) { printf("AudioUnitSetParameter kMultiChannelMixerParam_Enable result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+    });
     
 }
 
 // sets the input volume for a specific bus
-- (void)setInputVolume:(UInt32)inputNum value:(AudioUnitParameterValue)value
-{
-    OSStatus result = AudioUnitSetParameter(_mMixer, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, inputNum, value, 0);
-    if (result) { printf("AudioUnitSetParameter kMultiChannelMixerParam_Volume Input result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+- (void)setInputVolume:(UInt32)inputNum value:(AudioUnitParameterValue)value {
+    dispatch_sync(self.taskQueue, ^{
+        
+        OSStatus result = AudioUnitSetParameter(self->_mMixer, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, inputNum, value, 0);
+        if (result) { printf("AudioUnitSetParameter kMultiChannelMixerParam_Volume Input result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+    });
 }
 
 // sets the overall mixer output volume
-- (void)setOutputVolume:(AudioUnitParameterValue)value
-{
-    OSStatus result = AudioUnitSetParameter(_mMixer, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, value, 0);
-    if (result) { printf("AudioUnitSetParameter kMultiChannelMixerParam_Volume Output result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+- (void)setOutputVolume:(AudioUnitParameterValue)value {
+    dispatch_sync(self.taskQueue, ^{
+        
+        OSStatus result = AudioUnitSetParameter(self->_mMixer, kMultiChannelMixerParam_Volume, kAudioUnitScope_Output, 0, value, 0);
+        if (result) { printf("AudioUnitSetParameter kMultiChannelMixerParam_Volume Output result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+    });
 }
 #pragma mark - Private
 - (void)loadFiles{
-    NSString *sourceA = [[NSBundle mainBundle] pathForResource:@"GuitarMonoSTP" ofType:@"aif"];
-    NSString *sourceB = [[NSBundle mainBundle] pathForResource:@"Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free" ofType:@"mp3"];
-//    NSString *sourceB = [[NSBundle mainBundle] pathForResource:@"DrumsMonoSTP" ofType:@"aif"];
-
+    if (self.files && [self.files count] > 0) {
+        _soundBufferList = (SoundBuffer *)malloc(sizeof(SoundBuffer) * self.files.count);
+        
+        for (int i = 0 ; i<[self.files count]; ++i) {
+            SoundBuffer soundBuffer = [ReadSourceTool getAudioFormLoacl:self.files[i]];
+            _soundBufferList[i] = soundBuffer;
+        }
+        
+    }
     
-    _soundBufferA = [ReadSourceTool getAudioFormLoacl:sourceA];
-    _soundBufferB = [ReadSourceTool getAudioFormLoacl:sourceB];
 }
 
 - (void)initializeAUGraph{
     
+    // bufferList 里存放着一堆 buffers，buffers 的长度是动态的
+    uint32_t numberBuffers = 1;
+    _buffers = (AudioBufferList *)malloc(sizeof(AudioBufferList));
+    _buffers->mNumberBuffers = numberBuffers;
+    
     AUNode outputNode;
     AUNode mixerNode;
-    
-    // 加载本地音频
-    [self performSelectorInBackground:@selector(loadFiles) withObject:nil];
     
     OSStatus result = noErr;
 
@@ -157,10 +204,12 @@
     CAShow(_mGraph);
 }
 - (void)audioUnitSetProperty{
+    UInt32 captureNumbus = 2;
+    
     OSStatus result = noErr;
    
-    // set bus count 有几个设置几个，当前只有两个。
-    UInt32 numbuses = kNumbuses;
+    // set bus count.
+    UInt32 numbuses = (UInt32)([self.files count] + 1);
     // 设置混音输入的源的 Element（ bus） 数量
     result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &numbuses, sizeof(numbuses));
     NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
@@ -172,65 +221,111 @@
     NSAssert(result == noErr, @"kAudioUnitProperty_MaximumFramesPerSlice result Error");
 
     
-    
     // 设置 混音输入数据的回调 和 输入源的 Fromat
     for (int i = 0; i < numbuses; ++i) {
-        // 创建 render callback
+    
+        AVAudioFormat *mAudioFormat = nil;
         AURenderCallbackStruct rcbs;
-        rcbs.inputProc = &renderInput;
-        rcbs.inputProcRefCon = (__bridge void * _Nullable)(self);
-        
+        if (i < [self.files count]) {
+            // 创建 render callback
+            rcbs.inputProc = &renderInputOfBGM;
+            rcbs.inputProcRefCon = (__bridge void * _Nullable)(self);
+            
+            // 为 AUGraph 生成统一的 ASBD（AudioStreamBasicDescription）
+            AVAudioFormat *mAudioFormatA = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
+                                                                            sampleRate:kGraphSampleRate
+                                                                              channels:_soundBufferList[i].channelCount
+                                                                           interleaved:NO];
+            mAudioFormat = mAudioFormatA;
+        }else{
+            // 创建 render callback
+            rcbs.inputProc = &renderInputOfCapture;
+            rcbs.inputProcRefCon = (__bridge void * _Nullable)(self);
+            
+            AVAudioFormat *mAudioFormatB = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
+                                                                            sampleRate:kGraphSampleRate
+                                                                              channels:captureNumbus
+                                                                           interleaved:NO];
+            mAudioFormat = mAudioFormatB;
+        }
         
         // 设置 render callback
         result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, i, &rcbs, sizeof(rcbs));
         NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
         
-        // 为 AUGraph 生成统一的 ASBD（AudioStreamBasicDescription）
-        AVAudioFormat *mAudioFormat = nil;
-        if (i == 0) {
-            AVAudioFormat *mAudioFormatA = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
-                                                                            sampleRate:kGraphSampleRate
-                                                                              channels:1
-                                                                           interleaved:NO];
-            mAudioFormat = mAudioFormatA;
-        }else{
-            AVAudioFormat *mAudioFormatB = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
-                                                                            sampleRate:kGraphSampleRate
-                                                                              channels:2
-                                                                           interleaved:NO];
-            mAudioFormat = mAudioFormatB;
-        }
-        
-        
-        
         // 设置输入源的Fromat
         result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, i, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
         NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
-
+        
     }
     
-    // 设置输出的 Fromat
-    double sample = kGraphSampleRate;
     
-    result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_SampleRate,
-                         kAudioUnitScope_Output, 0,&sample , sizeof(sample));
+    /*remote I/O 设置*/
+    // 打开语音录入
+    UInt32 flagOne = 1;
+     result =AudioUnitSetProperty(_mOutput, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &flagOne, sizeof(flagOne));
     NSAssert(result == noErr, @"kAudioUnitProperty_SampleRate result Error");
-
-//    result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
-//    NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
-
-//    result = AudioUnitSetProperty(_mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1,  mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
-//    NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
+    
+   // 设置语音录入格式
+    AudioStreamBasicDescription desc = {0};
+    desc.mSampleRate = kGraphSampleRate;
+    desc.mFormatID = kAudioFormatLinearPCM;
+    desc.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked;
+    desc.mChannelsPerFrame = captureNumbus;
+    desc.mFramesPerPacket = 1;
+    desc.mBitsPerChannel = 16;
+    desc.mBytesPerFrame = desc.mBitsPerChannel / 8 * desc.mChannelsPerFrame;
+    desc.mBytesPerPacket = desc.mBytesPerFrame * desc.mFramesPerPacket;
+    
+    result = AudioUnitSetProperty(_mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1,&desc , sizeof(AudioStreamBasicDescription));
+    NSAssert(result == noErr, @"kAudioUnitProperty_SampleRate result Error");
+    
+    // 设置数据采集回调函数
+    AURenderCallbackStruct cb;
+    cb.inputProcRefCon = (__bridge void *)(self);
+    cb.inputProc = handleInputBuffer;
+    result =AudioUnitSetProperty(_mOutput, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Output, 1, &cb, sizeof(cb));
+    NSAssert(result == noErr, @"kAudioUnitProperty_SampleRate result Error");
     
 }
+#pragma mark - audioUnit 回调
+#pragma mark 录音硬件输入回调
+static OSStatus handleInputBuffer(void *inRefCon,
+                                  AudioUnitRenderActionFlags *ioActionFlags,
+                                  const AudioTimeStamp *inTimeStamp,
+                                  UInt32 inBusNumber,
+                                  UInt32 inNumberFrames,
+                                  AudioBufferList *ioData) {
+    @autoreleasepool {
+        MultichannelMixerController *source = (__bridge MultichannelMixerController *)inRefCon;
+        if (!source) {
+            return -1;
+        }
+        AudioBuffer buffer;
+        buffer.mData = NULL;
+        buffer.mDataByteSize = 0;
+        buffer.mNumberChannels = 1;
+        source->_buffers->mBuffers[0] = buffer;
 
+        // 获得录制的采样数据
+        OSStatus status = AudioUnitRender(source->_mOutput,
+                                          ioActionFlags,
+                                          inTimeStamp,
+                                          inBusNumber,
+                                          inNumberFrames,
+                                          source->_buffers);
+        
+//        printf("bus %d sample %d\n", (unsigned int)inBusNumber,status);
+//        [source writePCMData:source->_buffers->mBuffers[0].mData size:source->_buffers->mBuffers[0].mDataByteSize];
 
-static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData){
+        return status;
+    }
+}
+#pragma 混音输入源回调
+static OSStatus renderInputOfBGM(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData){
     MultichannelMixerController *source = (__bridge MultichannelMixerController *)inRefCon;
     
-//    SoundBuffer * sndbuf = source->mSoundBuffer;
-//
-    SoundBuffer *sndbuf = inBusNumber == 1 ? &(source->_soundBufferB): &(source->_soundBufferA);
+    SoundBuffer *sndbuf =  &(source->_soundBufferList[inBusNumber]);
 
     UInt32 sample = sndbuf->sampleNum;      // frame number to start from
     UInt32 bufSamples = sndbuf->numFrames;  // total number of frames in the sound buffer
@@ -261,6 +356,46 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
     
     return noErr;
     
+}
+static OSStatus renderInputOfCapture(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData){
+    MultichannelMixerController *source = (__bridge MultichannelMixerController *)inRefCon;
+    
+    Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
+    Float32 *outB = (Float32 *)ioData->mBuffers[1].mData; // output audio buffer for R channel
+
+    AudioBufferList buffers = *(source->_buffers);
+    AudioBuffer buffer = buffers.mBuffers[0];
+    Float32 *data =  buffer.mData;
+    for (UInt32 i = 0; i < inNumberFrames && i < buffer.mDataByteSize ; ++i) {
+        outA[i] = data[i];
+        outB[i] = data[i];
+    }
+    printf("bus %d sample %d,%d\n", (unsigned int)inBusNumber, buffer.mDataByteSize, inNumberFrames);
+
+//    for (int i = 0; i < buffers.mNumberBuffers; i++) {
+//        AudioBuffer ab = buffers.mBuffers[i];
+//        memset(ab.mData, 0, ab.mDataByteSize);
+//    }
+//
+//         采样数据已经在 bufferList 中的 buffers 中了
+//                if (source.muted) {
+//                    for (int i = 0; i < buffers.mNumberBuffers; i++) {
+//                        AudioBuffer ab = buffers.mBuffers[i];
+//                        memset(ab.mData, 0, ab.mDataByteSize);
+//                    }
+//                }
+    
+        return noErr;
+    
+}
+
+- (void)writePCMData:(Byte *)buffer size:(int)size {
+    static FILE *file = NULL;
+    NSString *path = [NSTemporaryDirectory() stringByAppendingString:@"/record.pcm"];
+    if (!file) {
+        file = fopen(path.UTF8String, "w");
+    }
+    fwrite(buffer, size, 1, file);
 }
 
 @end

@@ -16,7 +16,6 @@ typedef struct {
     UInt32                      numFrames;
     UInt32                      sampleNum;
 } SoundBuffer;
-
 extern const Float64 kGraphSampleRate;
 
 NS_ASSUME_NONNULL_BEGIN

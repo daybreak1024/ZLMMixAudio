@@ -7,16 +7,27 @@
 //
 
 #import "AppDelegate.h"
-
+#import <AVKit/AVKit.h>
 @interface AppDelegate ()
 
 @end
+#define  kGraphSampleRate 44100.0 // 48000.0 optional tests
 
 @implementation AppDelegate
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord
+                                     withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker |
+     AVAudioSessionCategoryOptionDuckOthers
+                                           error:nil];
+    NSTimeInterval bufferDuration = .005;
+    [[AVAudioSession sharedInstance] setPreferredIOBufferDuration:bufferDuration error:nil];
+    [[AVAudioSession sharedInstance] setPreferredSampleRate:kGraphSampleRate error:nil];
+    [[AVAudioSession sharedInstance] setActive:YES withOptions:kAudioSessionSetActiveFlag_NotifyOthersOnDeactivation error:nil];
+
     return YES;
 }
 

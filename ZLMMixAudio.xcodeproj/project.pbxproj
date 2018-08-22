@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E505D20A212A618E00B4E5AE /* AudioCapture.m in Sources */ = {isa = PBXBuildFile; fileRef = E505D209212A618E00B4E5AE /* AudioCapture.m */; };
 		E54422BC211D229A00A27BDB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E54422BB211D229A00A27BDB /* AppDelegate.m */; };
 		E54422BF211D229A00A27BDB /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E54422BE211D229A00A27BDB /* ViewController.m */; };
 		E54422C2211D229B00A27BDB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E54422C0211D229B00A27BDB /* Main.storyboard */; };
@@ -22,6 +23,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E505D208212A618E00B4E5AE /* AudioCapture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioCapture.h; sourceTree = "<group>"; };
+		E505D209212A618E00B4E5AE /* AudioCapture.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AudioCapture.m; sourceTree = "<group>"; };
 		E54422B7211D229A00A27BDB /* ZLMMixAudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ZLMMixAudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E54422BA211D229A00A27BDB /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		E54422BB211D229A00A27BDB /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -88,6 +91,8 @@
 				E54422D4211D273600A27BDB /* MultichannelMixerController.m */,
 				E54422D6211D5E8E00A27BDB /* ReadSourceTool.h */,
 				E54422D7211D5E8E00A27BDB /* ReadSourceTool.m */,
+				E505D208212A618E00B4E5AE /* AudioCapture.h */,
+				E505D209212A618E00B4E5AE /* AudioCapture.m */,
 				E54422D9211D5F7A00A27BDB /* Resources */,
 			);
 			path = ZLMMixAudio;
@@ -177,6 +182,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E54422D5211D273600A27BDB /* MultichannelMixerController.m in Sources */,
+				E505D20A212A618E00B4E5AE /* AudioCapture.m in Sources */,
 				E54422BF211D229A00A27BDB /* ViewController.m in Sources */,
 				E54422D2211D249000A27BDB /* ZLMMixVideoViewController.m in Sources */,
 				E54422CA211D229C00A27BDB /* main.m in Sources */,

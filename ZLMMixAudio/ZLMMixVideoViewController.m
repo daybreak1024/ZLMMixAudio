@@ -8,6 +8,7 @@
 
 #import "ZLMMixVideoViewController.h"
 #import "MultichannelMixerController.h"
+#import "ReadSourceTool.h"
 @interface ZLMMixVideoViewController ()
 @property (nonatomic, strong) MultichannelMixerController *mixerController;
 @end
@@ -16,9 +17,12 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
-    _mixerController = [[MultichannelMixerController alloc] init];
-
+    
+//    NSString *sourceA = [[NSBundle mainBundle] pathForResource:@"GuitarMonoSTP" ofType:@"aif"];
+    NSString *sourceB = [[NSBundle mainBundle] pathForResource:@"Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free" ofType:@"mp3"];
+    //    NSString *sourceB = [[NSBundle mainBundle] pathForResource:@"DrumsMonoSTP" ofType:@"aif"];
+    NSArray *files = @[sourceB];
+    _mixerController = [[MultichannelMixerController alloc] initWithLoaclFilesPath:files];
 }
 
 /*
