@@ -216,20 +216,12 @@
                          kAudioUnitScope_Output, 0,&sample , sizeof(sample));
     NSAssert(result == noErr, @"kAudioUnitProperty_SampleRate result Error");
 
-//    result = AudioUnitSetProperty(_mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
-//    NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
-
-//    result = AudioUnitSetProperty(_mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1,  mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
-//    NSAssert(result == noErr, @"AudioUnitSetProperty result Error");
-    
 }
 
 
 static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData){
     MultichannelMixerController *source = (__bridge MultichannelMixerController *)inRefCon;
-    
-//    SoundBuffer * sndbuf = source->mSoundBuffer;
-//
+
     SoundBuffer *sndbuf = inBusNumber == 1 ? &(source->_soundBufferB): &(source->_soundBufferA);
 
     UInt32 sample = sndbuf->sampleNum;      // frame number to start from

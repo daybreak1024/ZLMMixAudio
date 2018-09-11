@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14313.3.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="qKb-ow-ypn">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14313.13.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="qKb-ow-ypn">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.1"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.9"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -143,12 +143,20 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <slider opaque="NO" tag="1" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="ina-7c-qDT">
+                                <rect key="frame" x="14" y="434" width="347" height="31"/>
+                                <connections>
+                                    <action selector="setOutputVolume:" destination="i9G-UP-MO3" eventType="valueChanged" id="hMY-ad-s0D"/>
+                                </connections>
+                            </slider>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="aWb-hG-8YS" firstAttribute="leading" secondItem="rAY-Ai-oTp" secondAttribute="leadingMargin" id="8O0-tR-PyK"/>
                             <constraint firstItem="wev-uh-AND" firstAttribute="top" secondItem="Hgc-8C-YVg" secondAttribute="bottom" constant="8" id="915-qd-hiI"/>
+                            <constraint firstItem="ina-7c-qDT" firstAttribute="top" secondItem="nQc-C4-TvF" secondAttribute="bottom" constant="19" id="9Pt-7E-bhy"/>
                             <constraint firstItem="IbU-cm-YMQ" firstAttribute="leading" secondItem="rAY-Ai-oTp" secondAttribute="leadingMargin" id="9ss-ov-YdP"/>
+                            <constraint firstItem="ina-7c-qDT" firstAttribute="leading" secondItem="rAY-Ai-oTp" secondAttribute="leadingMargin" id="BL7-Af-Jy7"/>
                             <constraint firstItem="wev-uh-AND" firstAttribute="leading" secondItem="rAY-Ai-oTp" secondAttribute="leadingMargin" id="DyI-OL-mMP"/>
                             <constraint firstItem="1gK-JK-TvW" firstAttribute="top" secondItem="00d-dx-hGz" secondAttribute="bottom" constant="8" id="Jzx-wp-DGt"/>
                             <constraint firstItem="aWb-hG-8YS" firstAttribute="top" secondItem="k9C-fc-Wrj" secondAttribute="bottom" constant="22" id="R8w-Y2-nNK"/>
@@ -164,6 +172,7 @@
                             <constraint firstItem="P5k-Ev-4ae" firstAttribute="top" secondItem="aWb-hG-8YS" secondAttribute="bottom" constant="32" id="iyK-dO-5sc"/>
                             <constraint firstItem="P5k-Ev-4ae" firstAttribute="leading" secondItem="rAY-Ai-oTp" secondAttribute="leadingMargin" id="jOn-1s-acx"/>
                             <constraint firstItem="wmO-mE-Jhs" firstAttribute="top" secondItem="aWb-hG-8YS" secondAttribute="bottom" constant="10" id="mHn-Ma-GSE"/>
+                            <constraint firstItem="ina-7c-qDT" firstAttribute="trailing" secondItem="rAY-Ai-oTp" secondAttribute="trailingMargin" id="n0y-sX-S6Q"/>
                             <constraint firstItem="nQc-C4-TvF" firstAttribute="top" secondItem="wev-uh-AND" secondAttribute="bottom" constant="33" id="oee-6e-k1u"/>
                             <constraint firstItem="wmO-mE-Jhs" firstAttribute="leading" secondItem="rAY-Ai-oTp" secondAttribute="leadingMargin" id="onM-SD-s3v"/>
                             <constraint firstItem="nQc-C4-TvF" firstAttribute="leading" secondItem="rAY-Ai-oTp" secondAttribute="leadingMargin" id="rkv-gm-xTB"/>
@@ -171,6 +180,10 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="JHo-PQ-OwG"/>
+                    <connections>
+                        <outlet property="bus0VolumeSlider" destination="1gK-JK-TvW" id="myc-Je-Pt2"/>
+                        <outlet property="bus1VolumeSlider" destination="wev-uh-AND" id="ffj-st-ReW"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="8rS-Zq-TmI" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

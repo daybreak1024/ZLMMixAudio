@@ -9,6 +9,8 @@
 #import "ZLMMixVideoViewController.h"
 #import "MultichannelMixerController.h"
 @interface ZLMMixVideoViewController ()
+@property (weak, nonatomic) IBOutlet UISlider *bus0VolumeSlider;
+@property (weak, nonatomic) IBOutlet UISlider *bus1VolumeSlider;
 @property (nonatomic, strong) MultichannelMixerController *mixerController;
 @end
 
@@ -21,15 +23,6 @@
 
 }
 
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 - (IBAction)palyClick:(UIButton *)sender {
     sender.selected = !sender.selected;
     if (sender.selected) {
@@ -44,8 +37,8 @@
     UInt32 inputNum = (UInt32)[sender tag];
     AudioUnitParameterValue isOn = (AudioUnitParameterValue)sender.isOn;
     
-//    if (0 == inputNum) self.bus0VolumeSlider.enabled = isOn;
-//    if (1 == inputNum) self.bus1VolumeSlider.enabled = isOn;
+    if (0 == inputNum) self.bus0VolumeSlider.enabled = isOn;
+    if (1 == inputNum) self.bus1VolumeSlider.enabled = isOn;
     
     [self.mixerController enableInput:inputNum isOn:isOn];
 }
@@ -55,5 +48,10 @@
     AudioUnitParameterValue value = sender.value;
     
     [self.mixerController setInputVolume:inputNum value:value];
+}
+- (IBAction)setOutputVolume:(UISlider *)sender {
+    AudioUnitParameterValue value = sender.value;
+
+    [self.mixerController setOutputVolume:value];
 }
 @end
