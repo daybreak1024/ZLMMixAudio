@@ -13,6 +13,12 @@
 		E54422C4211D229C00A27BDB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E54422C3211D229C00A27BDB /* Assets.xcassets */; };
 		E54422C7211D229C00A27BDB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E54422C5211D229C00A27BDB /* LaunchScreen.storyboard */; };
 		E54422CA211D229C00A27BDB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E54422C9211D229C00A27BDB /* main.m */; };
+		E54422D2211D249000A27BDB /* ZLMMixVideoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E54422D1211D249000A27BDB /* ZLMMixVideoViewController.m */; };
+		E54422D5211D273600A27BDB /* MultichannelMixerController.m in Sources */ = {isa = PBXBuildFile; fileRef = E54422D4211D273600A27BDB /* MultichannelMixerController.m */; };
+		E54422D8211D5E8E00A27BDB /* ReadSourceTool.m in Sources */ = {isa = PBXBuildFile; fileRef = E54422D7211D5E8E00A27BDB /* ReadSourceTool.m */; };
+		E54422DE211D5F7B00A27BDB /* GuitarMonoSTP.aif in Resources */ = {isa = PBXBuildFile; fileRef = E54422DB211D5F7B00A27BDB /* GuitarMonoSTP.aif */; };
+		E54422DF211D5F7B00A27BDB /* DrumsMonoSTP.aif in Resources */ = {isa = PBXBuildFile; fileRef = E54422DC211D5F7B00A27BDB /* DrumsMonoSTP.aif */; };
+		E58004D421257C6D007D0947 /* Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E58004D321257C6D007D0947 /* Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +32,15 @@
 		E54422C6211D229C00A27BDB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E54422C8211D229C00A27BDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E54422C9211D229C00A27BDB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		E54422D0211D249000A27BDB /* ZLMMixVideoViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZLMMixVideoViewController.h; sourceTree = "<group>"; };
+		E54422D1211D249000A27BDB /* ZLMMixVideoViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZLMMixVideoViewController.m; sourceTree = "<group>"; };
+		E54422D3211D273600A27BDB /* MultichannelMixerController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MultichannelMixerController.h; sourceTree = "<group>"; };
+		E54422D4211D273600A27BDB /* MultichannelMixerController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MultichannelMixerController.m; sourceTree = "<group>"; };
+		E54422D6211D5E8E00A27BDB /* ReadSourceTool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReadSourceTool.h; sourceTree = "<group>"; };
+		E54422D7211D5E8E00A27BDB /* ReadSourceTool.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ReadSourceTool.m; sourceTree = "<group>"; };
+		E54422DB211D5F7B00A27BDB /* GuitarMonoSTP.aif */ = {isa = PBXFileReference; lastKnownFileType = file; path = GuitarMonoSTP.aif; sourceTree = "<group>"; };
+		E54422DC211D5F7B00A27BDB /* DrumsMonoSTP.aif */ = {isa = PBXFileReference; lastKnownFileType = file; path = DrumsMonoSTP.aif; sourceTree = "<group>"; };
+		E58004D321257C6D007D0947 /* Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free.mp3"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,8 +82,25 @@
 				E54422C5211D229C00A27BDB /* LaunchScreen.storyboard */,
 				E54422C8211D229C00A27BDB /* Info.plist */,
 				E54422C9211D229C00A27BDB /* main.m */,
+				E54422D0211D249000A27BDB /* ZLMMixVideoViewController.h */,
+				E54422D1211D249000A27BDB /* ZLMMixVideoViewController.m */,
+				E54422D3211D273600A27BDB /* MultichannelMixerController.h */,
+				E54422D4211D273600A27BDB /* MultichannelMixerController.m */,
+				E54422D6211D5E8E00A27BDB /* ReadSourceTool.h */,
+				E54422D7211D5E8E00A27BDB /* ReadSourceTool.m */,
+				E54422D9211D5F7A00A27BDB /* Resources */,
 			);
 			path = ZLMMixAudio;
+			sourceTree = "<group>";
+		};
+		E54422D9211D5F7A00A27BDB /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E54422DB211D5F7B00A27BDB /* GuitarMonoSTP.aif */,
+				E54422DC211D5F7B00A27BDB /* DrumsMonoSTP.aif */,
+				E58004D321257C6D007D0947 /* Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free.mp3 */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -129,8 +161,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				E54422C7211D229C00A27BDB /* LaunchScreen.storyboard in Resources */,
+				E58004D421257C6D007D0947 /* Zac Efron;Drew Seeley;Vanessa Hudgens-Breaking Free.mp3 in Resources */,
 				E54422C4211D229C00A27BDB /* Assets.xcassets in Resources */,
+				E54422DF211D5F7B00A27BDB /* DrumsMonoSTP.aif in Resources */,
 				E54422C2211D229B00A27BDB /* Main.storyboard in Resources */,
+				E54422DE211D5F7B00A27BDB /* GuitarMonoSTP.aif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,8 +176,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E54422D5211D273600A27BDB /* MultichannelMixerController.m in Sources */,
 				E54422BF211D229A00A27BDB /* ViewController.m in Sources */,
+				E54422D2211D249000A27BDB /* ZLMMixVideoViewController.m in Sources */,
 				E54422CA211D229C00A27BDB /* main.m in Sources */,
+				E54422D8211D5E8E00A27BDB /* ReadSourceTool.m in Sources */,
 				E54422BC211D229A00A27BDB /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -220,7 +258,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -273,7 +311,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
